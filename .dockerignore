@@ -1,0 +1,15 @@
+# Ignore local build artifacts and IDE folders
+target/
+.idea/
+*.iml
+.vscode/
+.git/
+.gitignore
+
+# Do not bake local test data into the container image
+data/
+
+# Logs and scratch files
+*.log
+scratch/
+HELP.md

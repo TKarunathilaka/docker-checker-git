@@ -1,0 +1,19 @@
+services:
+  spring-web:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: spring-docker-demo:latest
+    container_name: spring-boot-textdb-app
+    ports:
+      # Map host port 8080 to container port 8080 (http://localhost:8080)
+      - "8080:8080"
+    volumes:
+      # PERSISTENCE: Mount local ./data folder into container /app/data
+      # Any text file changes in the container (users.txt, user_records.txt)
+      # are instantly written to your Windows disk!
+      - ./data:/app/data
+    environment:
+      - SPRING_PROFILES_ACTIVE=default
+      - APP_DATABASE_DIR=/app/data
+    restart: unless-stopped

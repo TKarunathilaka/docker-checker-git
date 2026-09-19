@@ -1,0 +1,3 @@
+{"id":"usr_demo01","name":"Demo Explorer","email":"demo@example.com","passwordHash":"c45b68fcd9bb696f9a2343ee7bdd6fbc82cdbfec394d7b7366f798059bc30bcb","createdAt":"2026-09-19 13:41:30"}
+{"id":"c57e27f1","name":"Alice Wonder","email":"alice@example.com","passwordHash":"c45b68fcd9bb696f9a2343ee7bdd6fbc82cdbfec394d7b7366f798059bc30bcb","createdAt":"2026-09-19 13:45:16"}
+{"id":"ac3096e5","name":"W.V.R.D.T.Y.Karunathilaka","email":"thosarayethmal300@gmail.com","passwordHash":"860e9ce869f97f5dd351af18b0356a0e966913cb7daca586c6c5eaabe3bfab22","createdAt":"2026-09-19 13:47:45"}

@@ -1,0 +1,238 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Dashboard &bull; Spring Boot Text File DB</title>
+  <meta name="description" content="Manage your persistent notes and explore real-time text-file database storage.">
+  <link rel="stylesheet" th:href="@{/css/styles.css}">
+</head>
+<body>
+  <div class="bg-grid-overlay"></div>
+
+  <!-- Header Nav -->
+  <header class="header-nav">
+    <a href="/" class="brand-logo">
+      <div class="brand-icon">
+        <svg viewBox="0 0 24 24">
+          <path d="M4 6a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6zm2 2v2h12V8H6zm0 4v2h12v-2H6zm0 4v2h8v-2H6z"/>
+        </svg>
+      </div>
+      <span>Spring<span style="color: var(--primary-light);">Doc</span></span>
+    </a>
+
+    <nav class="nav-links">
+      <a href="/" class="nav-link">Home</a>
+      <span class="badge badge-emerald" style="display:inline-flex; align-items:center; gap:0.4rem;">
+        <span style="width:7px; height:7px; background:#10B981; border-radius:50%; display:inline-block;"></span>
+        <span th:text="${user.name}">User</span>
+      </span>
+      <a href="/logout" class="btn btn-outline btn-sm" id="btn-dashboard-logout">Sign Out</a>
+    </nav>
+  </header>
+
+  <div class="dashboard-container">
+    <!-- Top Header -->
+    <div class="dashboard-top">
+      <div class="user-welcome">
+        <h1>Welcome, <span class="gradient-text" th:text="${user.name}">User</span></h1>
+        <p>Logged in as <strong style="color:var(--primary-light);" th:text="${user.email}">user@example.com</strong> &bull; Member since <span th:text="${user.createdAt}">Date</span></p>
+      </div>
+      <div>
+        <a href="#database-inspector" class="btn btn-outline btn-sm" id="btn-jump-inspector">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <polyline points="16 18 22 12 16 6"></polyline>
+            <polyline points="8 6 2 12 8 18"></polyline>
+          </svg>
+          Inspect Raw Text Files
+        </a>
+      </div>
+    </div>
+
+    <!-- Alert Banners -->
+    <div th:if="${successMessage}" class="alert alert-success" id="alert-success">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
+        <polyline points="22 4 12 14.01 9 11.01"></polyline>
+      </svg>
+      <span th:text="${successMessage}">Success message</span>
+    </div>
+
+    <div th:if="${infoMessage}" class="alert alert-info" id="alert-info">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <circle cx="12" cy="12" r="10"></circle>
+        <line x1="12" y1="8" x2="12" y2="12"></line>
+        <line x1="12" y1="16" x2="12.01" y2="16"></line>
+      </svg>
+      <span th:text="${infoMessage}">Info message</span>
+    </div>
+
+    <!-- Dashboard Stats Strip -->
+    <div class="stats-strip" style="margin-bottom: 2.5rem;">
+      <div class="glass-card stat-box">
+        <div class="stat-label">Your Records</div>
+        <div class="stat-value" th:text="${recordCount}">0</div>
+        <div class="stat-sub">Persisted in user_records.txt</div>
+      </div>
+
+      <div class="glass-card stat-box">
+        <div class="stat-label">Total System Users</div>
+        <div class="stat-value" th:text="${totalUsers}">1</div>
+        <div class="stat-sub">Persisted in users.txt</div>
+      </div>
+
+      <div class="glass-card stat-box">
+        <div class="stat-label">Database Disk Size</div>
+        <div class="stat-value"><span th:text="${dbSizeBytes}">0</span> <span style="font-size:1rem; color:var(--text-muted);">bytes</span></div>
+        <div class="stat-sub" style="word-break: break-all; font-size:0.75rem;" th:text="${dbDirectory}">./data</div>
+      </div>
+    </div>
+
+    <!-- Main Dashboard Two-Column Grid -->
+    <div class="dashboard-grid">
+      <!-- Left Column: Add Record Form -->
+      <div class="glass-card" style="padding: 1.75rem;">
+        <div style="display:flex; align-items:center; gap:0.5rem; margin-bottom:1.25rem;">
+          <div style="width:8px; height:8px; background:var(--primary); border-radius:50%;"></div>
+          <h2 style="font-size:1.2rem; font-weight:700;">New Record</h2>
+        </div>
+
+        <form th:action="@{/dashboard/records/create}" method="POST" id="form-create-record">
+          <div class="form-group">
+            <label class="form-label" for="record-title">Record Title</label>
+            <input type="text" id="record-title" name="title" class="form-input" placeholder="e.g., Docker Container Test" required>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label" for="record-category">Category</label>
+            <select id="record-category" name="category" class="form-select">
+              <option value="General">General Note</option>
+              <option value="DevOps">DevOps &amp; Docker</option>
+              <option value="Database">Text DB Architecture</option>
+              <option value="Project">Project Milestone</option>
+              <option value="Idea">Idea / Scratchpad</option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label" for="record-content">Content</label>
+            <textarea id="record-content" name="content" class="form-textarea" placeholder="Write any notes, configs, or data here..." rows="4" required></textarea>
+          </div>
+
+          <button type="submit" class="btn btn-primary btn-block" id="btn-save-record">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path>
+              <polyline points="17 21 17 13 7 13 7 21"></polyline>
+              <polyline points="7 3 7 8 15 8"></polyline>
+            </svg>
+            Save to Text File DB
+          </button>
+        </form>
+      </div>
+
+      <!-- Right Column: User Records List -->
+      <div>
+        <div class="records-header">
+          <div>
+            <h2 style="font-size:1.3rem; font-weight:700;">Your Saved Records</h2>
+            <p style="color:var(--text-secondary); font-size:0.85rem;">Loaded live from <code style="color:var(--cyan);">data/user_records.txt</code></p>
+          </div>
+          <span class="badge badge-primary" th:text="${recordCount} + ' Items'">0 Items</span>
+        </div>
+
+        <!-- Empty State -->
+        <div th:if="${#lists.isEmpty(records)}" class="glass-card empty-state">
+          <div class="empty-state-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+              <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+              <polyline points="14 2 14 8 20 8"></polyline>
+              <line x1="12" y1="18" x2="12" y2="12"></line>
+              <line x1="9" y1="15" x2="15" y2="15"></line>
+            </svg>
+          </div>
+          <h3 style="font-size:1.15rem; font-weight:700; margin-bottom:0.5rem;">No records saved yet</h3>
+          <p style="color:var(--text-secondary); font-size:0.9rem; max-width:360px; margin:0 auto;">
+            Use the form on the left to write your first entry directly into the text file database!
+          </p>
+        </div>
+
+        <!-- Records List -->
+        <div th:unless="${#lists.isEmpty(records)}" class="records-list">
+          <div th:each="item : ${records}" class="glass-card record-item" th:id="'record-' + ${item.id}">
+            <div class="record-top">
+              <div>
+                <h3 class="record-title" th:text="${item.title}">Record Title</h3>
+                <span class="badge badge-cyan" style="margin-top:0.35rem; font-size:0.75rem;" th:text="${item.category}">Category</span>
+              </div>
+
+              <!-- Delete Action -->
+              <form th:action="@{'/dashboard/records/delete/' + ${item.id}}" method="POST" style="margin:0;">
+                <button type="submit" class="btn btn-danger btn-sm" th:id="'btn-delete-' + ${item.id}" title="Delete Record">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <polyline points="3 6 5 6 21 6"></polyline>
+                    <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+                  </svg>
+                  Delete
+                </button>
+              </form>
+            </div>
+
+            <p class="record-content" th:text="${item.content}">Content...</p>
+
+            <div class="record-footer">
+              <span>ID: <code style="color:var(--primary-light);" th:text="${item.id}">rec_123</code></span>
+              <span>Saved on: <span th:text="${item.createdAt}">2026-09-19</span></span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Live Text File Database Inspector -->
+    <div class="glass-card inspector-card" id="database-inspector">
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1rem; flex-wrap:wrap; gap:1rem;">
+        <div>
+          <div class="badge badge-emerald" style="margin-bottom:0.5rem;">Live File System Explorer</div>
+          <h2 style="font-size:1.35rem; font-weight:800;">Raw Text File Database Viewer</h2>
+          <p style="color:var(--text-secondary); font-size:0.88rem;">
+            Inspect how Spring Boot streams structured JSON records line-by-line into local text files.
+          </p>
+        </div>
+
+        <button type="button" class="btn btn-outline btn-sm" id="btn-copy-raw">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+            <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+          </svg>
+          Copy Content
+        </button>
+      </div>
+
+      <!-- File Tabs -->
+      <div class="inspector-tabs">
+        <button type="button" class="tab-btn active" id="tab-btn-records">📄 user_records.txt</button>
+        <button type="button" class="tab-btn" id="tab-btn-users">👥 users.txt</button>
+        <span style="margin-left:auto; font-size:0.8rem; color:var(--text-muted); align-self:center;" id="inspector-file-path">
+          Loading path...
+        </span>
+      </div>
+
+      <!-- Code viewer -->
+      <div class="code-viewer" id="raw-file-code">Loading text file from disk...</div>
+
+      <!-- Docker Volume Tip -->
+      <div style="margin-top:1.5rem; padding:1rem; background:rgba(255,255,255,0.02); border:1px solid var(--border-subtle); border-radius:var(--radius-md); font-size:0.88rem; color:var(--text-secondary);">
+        <strong style="color:var(--cyan);">🐳 Docker Persistence Note:</strong>
+        When we dockerize this Spring Boot app in the final stage, all you need to do is mount the folder containing these files:
+        <code style="color:var(--primary-light); background:rgba(0,0,0,0.4); padding:0.2rem 0.5rem; border-radius:4px; margin-left:0.3rem;">docker run -v /your/host/path/data:/app/data -p 8080:8080 my-spring-app</code>.
+      </div>
+    </div>
+  </div>
+
+  <footer style="text-align:center; padding:2rem; color:var(--text-muted); font-size:0.85rem; border-top:1px solid var(--border-subtle); margin-top:4rem;">
+    Spring Boot Text File Database App &bull; Java 21 &bull; Docker-ready architecture
+  </footer>
+
+  <script th:src="@{/js/app.js}"></script>
+</body>
+</html>
